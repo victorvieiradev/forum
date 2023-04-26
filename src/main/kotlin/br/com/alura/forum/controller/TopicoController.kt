@@ -2,15 +2,11 @@ package br.com.alura.forum.controller
 
 import br.com.alura.forum.dto.NovoTopicoForm
 import br.com.alura.forum.dto.TopicoView
-import br.com.alura.forum.model.Topico
 import br.com.alura.forum.service.TopicoService
 import jakarta.validation.Valid
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
+import org.springframework.web.util.UriBuilder
 
 @RestController
 @RequestMapping("/topicos")
@@ -29,7 +25,12 @@ class TopicoController(
     }
 
     @PostMapping
-    fun cadastrar(@RequestBody @Valid novoTopicoForm: NovoTopicoForm): TopicoView {
-        return topicoService.cadastrar(novoTopicoForm)
+    fun cadastrar(
+        @RequestBody @Valid novoTopicoForm: NovoTopicoForm,
+        uri: UriBuilder
+                  ): ResponseEntity<TopicoView> {
+        val topico = topicoService.cadastrar(novoTopicoForm)
+        val uri = uri.path("/topicos/${topico.id}").build()
+        return ResponseEntity.created(uri).body(topico)
     }
 }
