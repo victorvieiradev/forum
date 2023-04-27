@@ -3,6 +3,7 @@ package br.com.alura.forum.exceptions
 import br.com.alura.forum.dto.ErrorView
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
+import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -19,18 +20,38 @@ class ExceptionHandler {
             path = request.servletPath
         )
     }
+
     @ExceptionHandler(Exception::class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     fun handlerServerError(
         exception: Exception,
         request: HttpServletRequest
-    ): ErrorView{
+    ): ErrorView {
         return ErrorView(
             status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
             error = HttpStatus.INTERNAL_SERVER_ERROR.name,
             mensagem = exception.message,
             path = request.servletPath
 
+        )
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    fun handleValidationError(
+        exception: MethodArgumentNotValidException,
+        request: HttpServletRequest
+    ): ErrorView {
+        val errorMenssage = HashMap<String, String?>()
+        exception.bindingResult.fieldErrors.forEach {
+            e ->
+            errorMenssage[e.field] = e.defaultMessage
+        }
+        return ErrorView(
+            status = HttpStatus.BAD_REQUEST.value(),
+            error = HttpStatus.BAD_REQUEST.name,
+            mensagem = errorMenssage.toString(),
+            path = request.servletPath
         )
     }
 }
